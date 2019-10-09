@@ -9,8 +9,8 @@ systemd_timer_{{timer}}_timer:
          Description={{ config['Description'] }} Timer
 
          [Timer]
-         {%- for line in config['Timer'] %}
-         {{line}}
+         {%- for key,value in config['Timer'].items() %}
+         {{key}}={{value}}
          {%- endfor %}
 
          [Install]
@@ -26,28 +26,28 @@ systemd_timer_{{timer}}_service:
           Description={{ config['Description'] }} Service
 
           [Service]
-          {%- for line in config['Service'] %}
-          {%- if line is mapping %}
-          {%- set key,items = line.items()|first %}
-          {{key}}={{config_dir}}/{{items.get('name')}}
+          {%- for key,value in config['Service'].items() %}
+          {%- if value is mapping %}
+          {{key}}={{config_dir}}/{{value.name}}
           {%- else %}
-          {{line}}
+          {{key}}={{value}}
           {%- endif %}
           {%- endfor %}
     - require_in:
       - service: systemd_timer_{{timer}}_enable
 
-{%- for line in config['Service'] %}
-{%- if line is mapping %}
-{%- set key,items = line.items()|first %}
-systemd_timer_{{items.get('name')}}:
+{%- for key,value in config['Service'].items() %}
+{%- if value is mapping %}
+systemd_timer_{{value.name}}:
   file.managed:
-    - name: {{config_dir}}/{{items.get('name')}}
+    - name: {{config_dir}}/{{value.name}}
     - mode: 700
-    {%- if items.get('source') != None %}
-    - source: {{items.get('source')}}
-    {%- elif items.get('contents_pillar') != None %}
-    - contents_pillar: {{items.get('contents_pillar')}}
+    {%- if value.source is defined %}
+    - source: {{value.source}}
+    {%- elif value.contents_pillar is defined %}
+    - contents_pillar: {{value.contents_pillar}}
+    {%- elif value.contents is defined %}
+    - contents_pillar: systemd-timer:{{timer}}:Service:{{key}}:contents
     {%- endif %}
 {%- endif %}
 {%- endfor %}

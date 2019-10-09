@@ -2,22 +2,37 @@ systemd-timer:
   timerExec:
     Description: test with command
     Timer:
-      - OnCalendar=*-*-* 23:59:00
+      OnCalendar: "*-*-* 23:59:00"
     Service:
-      - ExecStart=/bin/echo "Hello world"
+      ExecStart: "/bin/echo Hello world"
   timerSource:
     Description: test with upload from source
     Timer:
-      - OnBootSec=5m
+      OnBootSec: "5m"
     Service:
-      - ExecStart:
-          name: source-script.sh
-          source: salt://some/file.sh
+      ExecStart:
+        name: timerSource-script.sh
+        source: salt://some/file.sh
   timerPillar:
     Description: test with upload from pillar
     Timer:
-      - OnBootSec=5m
+      OnBootSec: "5m"
     Service:
-      - ExecStart:
-          name: pillar-script.sh
-          contents_pillar: key
+      ExecStart:
+        name: timerPillar-script.sh
+        contents_pillar: example:pillar
+  timerContents:
+    Description: test with upload from contents
+    Timer:
+      OnBootSec: "5m"
+    Service:
+      ExecStart:
+        name: timerContents-script.sh
+        contents: |
+            #!/bin/sh
+            echo "Hello from contents"
+
+example:
+  pillar: |
+    #!/bin/sh
+    echo "Hello from example:pillar"
